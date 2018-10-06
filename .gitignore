@@ -1,0 +1,8 @@
+# Ignore .idea directory
+/.idea
+# Ignore build intermediate results
+/out
+# Ignore .gradle directory
+/.gradle
+# Ignore authorization config file
+authorization.config
