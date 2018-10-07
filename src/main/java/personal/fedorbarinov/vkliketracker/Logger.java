@@ -7,9 +7,10 @@ import java.time.format.DateTimeFormatter;
 /**
  * Singleton logger class
  */
-class Logger {
+public class Logger {
     private static final String PREFIX_ERROR = "ERROR:"; //Prefix in case of error
     private static final String PREFIX_INFO = "INFO:"; //Prefix in case of info message
+    private static final String PREFIX_WARNING = "WARNING:"; //Prefix in case of warning
     private static final String SEPARATOR_WORD = " ";
     private static final String SEPARATOR_LINE = "\n";
     private static final String FORMAT_DATETIME = "yyyy-MM-dd HH:mm:ss";
@@ -21,7 +22,8 @@ class Logger {
      */
     public enum LogKind {
         ERROR,
-        INFO
+        INFO,
+        WARNING
     }
 
     private static Logger instance; //Singleton class instance
@@ -36,10 +38,12 @@ class Logger {
      * Get the instance of Logger class
      * @return The instance
      */
-    static Logger getInstance() { return instance; }
+    public static Logger getInstance() { return instance; }
 
     private PrintStream outInfo; //Info messages output stream
     private PrintStream outError; //Error output stream
+    private PrintStream outWarning; //Warning output stream
+
     private boolean enabledTime;
 
     private Logger() {
@@ -69,6 +73,9 @@ class Logger {
             case INFO:
                 this.outInfo = out;
                 break;
+            case WARNING:
+                this.outWarning = out;
+                break;
         }
     }
 
@@ -84,6 +91,9 @@ class Logger {
                 break;
             case INFO:
                 this.outInfo.print(buildLogMessage(PREFIX_INFO, message));
+                break;
+            case WARNING:
+                this.outWarning.print(buildLogMessage(PREFIX_WARNING, message));
                 break;
         }
     }

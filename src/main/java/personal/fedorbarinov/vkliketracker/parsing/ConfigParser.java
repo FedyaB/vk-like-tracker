@@ -5,35 +5,37 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * Abstract config parameters parser
  */
-public abstract class ParametersParser implements Parser {
+public abstract class ConfigParser implements Parser {
     private static final String COMMENT_PREFIX = "#"; //Comments in config start with this
     private static final String SEPARATOR_PARAMETER = "="; //A parameter and its value are separated with this
+    private static final String OPTION_PREFIX = "-"; //Prefix of an option in config
     private static final String EXCEPTION_BAD_FORMAT = "Bad parameters file format (correct: Parameter=Value)";
     private static final String EXCEPTION_NOT_ENOUGH_PARAMETERS = "Not enough parameters";
     private static final String EXCEPTION_PREFIX = "While parsing auth parameters:"; //Prefix for an exception message
 
     protected Map<String, String> parameters; //Parsed parameters
 
-    protected ParametersParser() {
+    protected ConfigParser() {
         parameters = new TreeMap<>();
     }
 
     @Override
     public Map<String, String> parse(InputStream in) throws ParsingException{
-        parameters.clear();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
             String line;
             //Parse config line by line
             while ((line = reader.readLine()) != null)
                 parseLine(line);
             //Check whether all the parameters are filled
-            if (!isMapFilled())
-                throw new ParsingException(buildErrorMessage(EXCEPTION_NOT_ENOUGH_PARAMETERS));
+            if (!checkedParametersAppend())
+                throw new ParsingException(EXCEPTION_NOT_ENOUGH_PARAMETERS);
             return parameters;
         } catch (IOException e) {
             throw new ParsingException(buildErrorMessage(e.getLocalizedMessage()));
@@ -49,10 +51,15 @@ public abstract class ParametersParser implements Parser {
         if (line.startsWith(COMMENT_PREFIX)) //Ignore comments
             return;
         String parts[] = line.split(SEPARATOR_PARAMETER);
-        if (parts.length != 2) //Only one parameter-value pair per line is allowed
+        if (parts.length == 2) { //PARAMETER=VALUE
+            if (isValidParameter(parts[0])) //If the parameter is present in the config list then add it
+                parameters.put(parts[0], parts[1]);
+        } else if (parts.length == 1 && parts[0].startsWith(OPTION_PREFIX)) { //-OPTION
+            String option = parts[0].substring(OPTION_PREFIX.length());
+            if (isValidOption(option))
+                parameters.put(option, null); //Null in value differs options from parameters
+        } else
             throw new ParsingException(buildErrorMessage(EXCEPTION_BAD_FORMAT));
-        if (isValidParameter(parts[0])) //If the parameter is present in the config list then add it
-            parameters.put(parts[0],parts[1]);
     }
 
     /**
@@ -65,15 +72,22 @@ public abstract class ParametersParser implements Parser {
     }
 
     /**
-     * Check whether the parameter is present in a parameters list of the config
+     * Check whether the parameter is present in parameters list of the config
      * @param parameter A parameter name
      * @return True if the parameter is present (False otherwise)
      */
     protected abstract boolean isValidParameter(String parameter);
 
     /**
-     * Check whether all of the config parameters are present in the map
-     * @return True if all of the parameters are present (False otherwise)
+     * Check whether the option is present in options list of the config
+     * @param option An option name
+     * @return True if the option is present (False otherwise)
      */
-    protected abstract boolean isMapFilled();
+    protected abstract boolean isValidOption(String option);
+
+    /**
+     * Fill the map with default values
+     * @return True if the parameters are filled (False otherwise)
+     */
+    protected abstract boolean checkedParametersAppend();
 }

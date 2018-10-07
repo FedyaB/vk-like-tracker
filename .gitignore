@@ -7,3 +7,5 @@
 /.gradle
 # Ignore authorization config file
 authorization.config
+# Ignore token cache file
+auth.cache

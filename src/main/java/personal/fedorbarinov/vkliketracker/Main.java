@@ -3,7 +3,7 @@ package personal.fedorbarinov.vkliketracker;
 import com.vk.api.sdk.client.actors.UserActor;
 import personal.fedorbarinov.vkliketracker.authorization.AuthManager;
 import personal.fedorbarinov.vkliketracker.authorization.BrowserAuthManager;
-import personal.fedorbarinov.vkliketracker.parsing.AuthParametersParser;
+import personal.fedorbarinov.vkliketracker.parsing.AuthConfigParser;
 import personal.fedorbarinov.vkliketracker.parsing.Parser;
 
 import java.io.FileInputStream;
@@ -19,7 +19,7 @@ public class Main {
         Logger logger = Logger.getInstance();
         try (FileInputStream authConfig = new FileInputStream(CONFIG_AUTH_PATH)) {
             //Get authorization parameters
-            AuthParametersParser authParametersParser = new AuthParametersParser();
+            AuthConfigParser authParametersParser = new AuthConfigParser();
             AuthManager authManager = new BrowserAuthManager(authParametersParser.parse(authConfig));
 
             //Perform authorization
