@@ -1,7 +1,6 @@
 package personal.fedorbarinov.vkliketracker.parsing;
 
 import java.io.InputStream;
-import java.util.Map;
 
 /**
  * Abstract parser
@@ -17,10 +16,36 @@ public interface Parser {
     }
 
     /**
+     * Result of parsing
+     */
+    interface ParsingResult {
+        /**
+         * Get value by key
+         * @param key Key
+         * @return Value associated with key
+         */
+        String get(String key);
+
+        /**
+         * Put data into result
+         * @param key Key
+         * @param value Value associated with key
+         */
+        void put(String key, String value);
+
+        /**
+         * Check whether key is present in the result
+         * @param key Key
+         * @return True if key is present (False otherwise)
+         */
+        boolean contains(String key);
+    }
+
+    /**
      * Parse input source for parameters and their values
      * @param in Input source stream
-     * @return Map of the parameters and values
+     * @return Parsing result of parameters and options
      * @throws ParsingException Exception that is thrown during parsing
      */
-    Map <String, String> parse(InputStream in) throws ParsingException;
+    ParsingResult parse(InputStream in) throws ParsingException;
 }

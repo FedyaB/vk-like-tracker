@@ -5,7 +5,9 @@
 /build
 # Ignore .gradle directory
 /.gradle
-# Ignore authorization config file
-authorization.config
-# Ignore token cache file
-auth.cache
+# Ignore config files
+*.config
+# But not the examples
+!/examples/*.config
+# Ignore cache files
+*.cache

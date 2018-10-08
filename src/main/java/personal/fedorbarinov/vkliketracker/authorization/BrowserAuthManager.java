@@ -12,6 +12,7 @@ import com.vk.api.sdk.objects.UserAuthResponse;
 import com.vk.api.sdk.objects.secure.TokenChecked;
 import personal.fedorbarinov.vkliketracker.Logger;
 import personal.fedorbarinov.vkliketracker.parsing.AuthConfigParser;
+import personal.fedorbarinov.vkliketracker.parsing.Parser;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,7 +21,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 
 /**
  * Authorization using default browser and manual auth code input
@@ -30,10 +30,12 @@ public class BrowserAuthManager implements AuthManager {
     private static final String AUTH_FORMAT_URI = "https://oauth.vk.com/authorize?client_id=%d&display=%s&redirect_uri=%s&scope=%s&response_type=%s&v=%s";
     private static final String RESPONSE_TYPE = "code";
     private static final String DISPLAY = "page";
+    private static final String API_VERSION = "5.85";
+    private static final String PERMISSIONS = "messages";
 
     private static final String INPUT_MESSAGE = "Enter the code parameter from browser:";
     private static final String INPUT_ERROR = "The input code was empty";
-    private static final String EXCEPTION_PREFIX = "While authorization:"; //Prefix for an exception message
+    private static final String EXCEPTION_PREFIX = "[Authorization]:"; //Prefix for an exception message
 
     private static final String LOG_MSG_CACHE_NEW = "Auth token has been cached";
     private static final String LOG_MSG_CACHE_USE = "Authorized with cached token";
@@ -67,16 +69,16 @@ public class BrowserAuthManager implements AuthManager {
      * Public constructor of the class
      * @param parameters Parameters that were obtained from the corresponding config file
      */
-    public BrowserAuthManager(Map<String, String> parameters) {
+    public BrowserAuthManager(Parser.ParsingResult parameters) {
         this.appId = Integer.parseInt(parameters.get(AuthConfigParser.APP_ID_LABEL));
         this.appSecret = parameters.get(AuthConfigParser.APP_SECRET_LABEL);
         this.redirectURI = parameters.get(AuthConfigParser.REDIRECT_LABEL);
-        this.apiVersion = parameters.get(AuthConfigParser.API_VERSION_LABEL);
-        this.permissions = parameters.get(AuthConfigParser.PERMISSIONS_LABEL);
+        this.apiVersion = API_VERSION;
+        this.permissions = PERMISSIONS;
         this.cachePath = Paths.get(parameters.get(AuthConfigParser.CACHE_PATH_LABEL));
         this.vkClient = new VkApiClient(HttpTransportClient.getInstance());
         this.validation = false;
-        this.isAuthCacheUsed = !parameters.containsKey(AuthConfigParser.NO_CACHING_LABEL);
+        this.isAuthCacheUsed = parameters.contains(AuthConfigParser.USE_CACHED_TOKEN_LABEL);
     }
 
     @Override
@@ -160,7 +162,6 @@ public class BrowserAuthManager implements AuthManager {
         } catch (ApiException | ClientException e) {
             throw new AuthException(buildErrorMessage(e.getLocalizedMessage()));
         }
-
     }
 
     /**

@@ -18,16 +18,47 @@ public abstract class ConfigParser implements Parser {
     private static final String OPTION_PREFIX = "-"; //Prefix of an option in config
     private static final String EXCEPTION_BAD_FORMAT = "Bad parameters file format (correct: Parameter=Value)";
     private static final String EXCEPTION_NOT_ENOUGH_PARAMETERS = "Not enough parameters";
-    private static final String EXCEPTION_PREFIX = "While parsing auth parameters:"; //Prefix for an exception message
+    private static final String EXCEPTION_PREFIX = "[Parsing]:"; //Prefix for an exception message
 
-    protected Map<String, String> parameters; //Parsed parameters
+    /**
+     * Parsing result returned from config parsers
+     */
+    private class ConfigParsingResult implements ParsingResult {
+        Map<String, String> parameters;
+        Set<String> options;
 
-    protected ConfigParser() {
-        parameters = new TreeMap<>();
+        ConfigParsingResult() {
+            parameters = new TreeMap<>();
+            options = new TreeSet<>();
+        }
+
+        @Override
+        public String get(String key) {
+            return parameters.getOrDefault(key, null);
+        }
+
+        @Override
+        public void put(String key, String value) {
+            if (value == null)
+                options.add(key);
+            else
+                parameters.put(key, value);
+        }
+
+        @Override
+        public boolean contains(String key) {
+            return parameters.containsKey(key) || options.contains(key);
+        }
+    }
+
+    ParsingResult parameters; //Parsed parameters
+
+    ConfigParser() {
+        parameters = new ConfigParsingResult();
     }
 
     @Override
-    public Map<String, String> parse(InputStream in) throws ParsingException{
+    public ParsingResult parse(InputStream in) throws ParsingException{
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
             String line;
             //Parse config line by line
